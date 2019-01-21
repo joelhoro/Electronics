@@ -1,0 +1,44 @@
+<title>Raspberry PI Electronics</title>
+<body>
+
+
+    <div ng-app='electronics'>
+        <div ng-controller='main'>
+            <input type='range' min=0 max=255 ng-change='changeBrightness($event)' ng-model='brightness' />
+            {{brightness}}
+
+        <svg width=100 length=100>
+                <ellipse cx=50 cy=20 rx=10 ry=20 fill='{{ledcolor}}' />
+                <line x1=45 y1=30 x2=45 y2=80 stroke='grey' stroke-width='1' />
+                <line x1=55 y1=30 x2=55 y2=90 stroke='grey' stroke-width='1' />
+        </svg>
+
+
+        </div>
+
+
+    </div> 
+
+
+</body>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src='/node_modules/angular/angular.js'></script>
+
+<script>
+
+var socket = io();
+
+angular.module('electronics',[])
+    .controller('main', function($scope) {
+        $scope.brightness=0;
+        $scope.changeBrightness = function(event) {
+            console.log($scope.brightness);
+            socket.emit('brightness', $scope.brightness);
+            $scope.ledcolor = "#" + $scope.brightness.toString(16) + "0000";
+        }
+
+    })
+
+
+</script>
