@@ -4,6 +4,7 @@
 
     <div ng-app='electronics'>
         <div ng-controller='main'>
+            {{(connected? "Connected" : "Not connected")}}
             <input type='range' min=0 max=255 ng-change='changeBrightness($event)' ng-model='brightness' />
             {{brightness}}
 
@@ -27,9 +28,8 @@
 
 <script>
 
-var socket = io();
-
-angular.module('electronics',[])
+    
+    angular.module('electronics',[])
     .controller('main', function($scope) {
         $scope.brightness=0;
         $scope.changeBrightness = function(event) {
@@ -37,6 +37,17 @@ angular.module('electronics',[])
             socket.emit('brightness', $scope.brightness);
             $scope.ledcolor = "#" + $scope.brightness.toString(16) + "0000";
         }
+        
+        var socket = io();
+        function setConnected(value) {
+            return () => {
+                $scope.connected = value;
+                $scope.$apply();
+            }
+        }
+
+        socket.on('connect', setConnected(true));
+        socket.on('disconnect', setConnected(false));
 
     })
 
