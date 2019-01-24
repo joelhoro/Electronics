@@ -14,9 +14,15 @@ const led = new Gpio(gpio_port, {mode: Gpio.OUTPUT});
 
 app.use('/', express.static(path.resolve(__dirname)))
 
+var brightnessMessage;
+
 io.on('connection', function(socket) {
 
     socket.on('brightness', function(value) {
+        clearTimeout(brightnessMessage);
+        brightnessMessage = setTimeout(() => {
+            console.log("Setting brightness to ", value);
+        }, 100 );
         led.pwmWrite(value);
     });
 
