@@ -5,7 +5,10 @@
     <div ng-app='electronics'>
         <div ng-controller='main'>
             {{(connected? "Connected" : "Not connected")}}
-            <input type='range' min=0 max=255 ng-change='changeBrightness($event)' ng-model='brightness' />
+                <button ng-click='setBrightness(0)'>OFF</button>
+                <button ng-click='setBrightness(brightness -20)'>-</button>
+                <button ng-click='setBrightness(brightness + 20)'>+</button>
+            <input type='range' min=0 max=255 ng-change='setBrightness(brightness)' ng-model='brightness' />
             {{brightness}}
 
         <svg width=100 length=100>
@@ -32,8 +35,10 @@
     angular.module('electronics',[])
     .controller('main', function($scope) {
         $scope.brightness=0;
-        $scope.changeBrightness = function(event) {
+        $scope.setBrightness = function(brightness) {
+            $scope.brightness = brightness;
             console.log($scope.brightness);
+            $scope.brightness = Math.min(255,Math.max(0,$scope.brightness));
             socket.emit('brightness', $scope.brightness);
             $scope.ledcolor = "#" + $scope.brightness.toString(16) + "0000";
         }

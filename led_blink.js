@@ -1,9 +1,9 @@
 const path = require('path');
 const Gpio = require('pigpio').Gpio;
 
-const express = require('express')
-const app = express()
-const port = 3000
+const express = require('express');
+const app = express();
+const port = 3000;
 
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
@@ -11,6 +11,10 @@ var io = require('socket.io')(http);
 const gpio_port = 4;
 
 const led = new Gpio(gpio_port, {mode: Gpio.OUTPUT});
+
+function setBrightness(value) {
+    led.pwmWrite(value);
+}
 
 app.use('/', express.static(path.resolve(__dirname)))
 
