@@ -1,0 +1,60 @@
+<title>Raspberry PI Electronics</title>
+<body>
+
+
+    <div ng-app='electronics'>
+        <div ng-controller='main'>
+            {{(connected? "Connected" : "Not connected")}}
+                <button ng-click='setBrightness(0)'>OFF</button>
+                <button ng-click='setBrightness(brightness -20)'>-</button>
+                <button ng-click='setBrightness(brightness + 20)'>+</button>
+            <input type='range' min=0 max=255 ng-change='setBrightness(brightness)' ng-model='brightness' />
+            {{brightness}}
+
+        <svg width=100 length=100>
+                <ellipse cx=50 cy=20 rx=10 ry=20 fill='{{ledcolor}}' />
+                <line x1=45 y1=30 x2=45 y2=80 stroke='grey' stroke-width='1' />
+                <line x1=55 y1=30 x2=55 y2=90 stroke='grey' stroke-width='1' />
+        </svg>
+
+
+        </div>
+
+
+    </div> 
+
+
+</body>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src='/node_modules/angular/angular.js'></script>
+
+<script>
+
+    
+    angular.module('electronics',[])
+    .controller('main', function($scope) {
+        $scope.brightness=0;
+        $scope.setBrightness = function(brightness) {
+            $scope.brightness = brightness;
+            console.log($scope.brightness);
+            $scope.brightness = Math.min(255,Math.max(0,$scope.brightness));
+            socket.emit('brightness', $scope.brightness);
+            $scope.ledcolor = "#" + $scope.brightness.toString(16) + "0000";
+        }
+        
+        var socket = io();
+        function setConnected(value) {
+            return () => {
+                $scope.connected = value;
+                $scope.$apply();
+            }
+        }
+
+        socket.on('connect', setConnected(true));
+        socket.on('disconnect', setConnected(false));
+
+    })
+
+ 
+</script>

@@ -1,28 +1,33 @@
 <title>Raspberry PI Electronics</title>
 <body>
 
-
     <div ng-app='electronics'>
         <div ng-controller='main'>
+            Distance: {{distance}}cm
+            <br><input type='range' min=0 max=500 ng-model='distance'>
+            <br><br>
+
+            <button ng-click='setPosition(2,positions[2]+10)'>&lt;--</button>
+            <button ng-click='setPosition(2,positions[2]-10)'>--&gt;</button>
+            <button ng-click='setPosition(1,positions[1]+10)'>FWD</button>
+            <button ng-click='setPosition(1,positions[1]-10)'>BACK</button>
+            <button ng-click='setPosition(0,positions[0]+10)'>UP</button>
+            <button ng-click='setPosition(0,positions[0]-10)'>DOWN</button>
+            <button ng-click='setPosition(3,positions[3]+10)'>OPEN</button>
+            <button ng-click='setPosition(3,positions[3]-10)'>CLOSE</button>
+            <br>
+            <button ng-click='debug()'>Debug</button>
             {{(connected? "Connected" : "Not connected")}}
-                <button ng-click='setBrightness(0)'>OFF</button>
-                <button ng-click='setBrightness(brightness -20)'>-</button>
-                <button ng-click='setBrightness(brightness + 20)'>+</button>
-            <input type='range' min=0 max=255 ng-change='setBrightness(brightness)' ng-model='brightness' />
-            {{brightness}}
-
-        <svg width=100 length=100>
-                <ellipse cx=50 cy=20 rx=10 ry=20 fill='{{ledcolor}}' />
-                <line x1=45 y1=30 x2=45 y2=80 stroke='grey' stroke-width='1' />
-                <line x1=55 y1=30 x2=55 y2=90 stroke='grey' stroke-width='1' />
-        </svg>
-
-
+            <br>
+                <button ng-click='setPosition(0)'>OFF</button>
+                <br>
+                <div ng-repeat='idx in [0,1,2,3]'>
+                    <br><button ng-repeat='shift in [-100,-50,-20,-10,-5,-1,1,5,10,20,50,100]' ng-click='setPosition(idx, positions[idx]  + shift)'>{{shift}}</button>
+                    <input type='range' min=0 max=100 ng-model='positions[idx]' ng-change='setPosition(idx,positions[idx])' />
+                    {{positions[idx]}} 
+                </div>
         </div>
-
-
     </div> 
-
 
 </body>
 
@@ -34,13 +39,12 @@
     
     angular.module('electronics',[])
     .controller('main', function($scope) {
-        $scope.brightness=0;
-        $scope.setBrightness = function(brightness) {
-            $scope.brightness = brightness;
-            console.log($scope.brightness);
-            $scope.brightness = Math.min(255,Math.max(0,$scope.brightness));
-            socket.emit('brightness', $scope.brightness);
-            $scope.ledcolor = "#" + $scope.brightness.toString(16) + "0000";
+        $scope.positions = [];
+
+        $scope.setPosition = function(idx, position) {
+            console.log("Setting ", idx, " to ", position);
+            $scope.positions[idx] = position;
+            socket.emit('positions', {idx, position});
         }
         
         var socket = io();
@@ -51,10 +55,27 @@
             }
         }
 
+        function debug() {
+            var s = socket;
+            debugger;
+        }
+
+        $scope.debug = debug;
         socket.on('connect', setConnected(true));
         socket.on('disconnect', setConnected(false));
+        socket.on('positions', data => {
+            console.log("Received ", data)
+            $scope.positions[data.idx] = data.position;
+            $scope.$apply();
+        });
+
+        socket.on('distance',d => { $scope.distance = d; $scope.$apply(); });
+        // socket.on('distance', function(distance) {
+        //     $scope.distance = distance;
+        //     $scope.$apply();
+        // });
 
     })
 
-
+ 
 </script>
