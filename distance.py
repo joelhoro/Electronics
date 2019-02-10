@@ -15,6 +15,7 @@ GPIO.setup(GPIO_ECHO, GPIO.IN)
  
 def distance():
     # set Trigger to HIGH
+    print("Triggering")
     GPIO.output(GPIO_TRIGGER, True)
  
     # set Trigger after 0.01ms to LOW
@@ -31,7 +32,8 @@ def distance():
     # save time of arrival
     while GPIO.input(GPIO_ECHO) == 1:
         StopTime = time.time()
- 
+
+    print("Received echo") 
     # time difference between start and arrival
     TimeElapsed = StopTime - StartTime
     # multiply with the sonic speed (34300 cm/s)
@@ -41,6 +43,7 @@ def distance():
     return distance
  
 if __name__ == '__main__':
+    print("Starting")
     try:
         while True:
             dist = distance()

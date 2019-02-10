@@ -1,4 +1,4 @@
-<title>Raspberry PI Electronics</title>
+<title>PI bot</title>
 <body>
 
     <div ng-app='electronics'>
@@ -6,30 +6,33 @@
 
             <!-- Distance: {{distance}}cm
                 <br><input type='range' min=0 max=500 ng-model='distance'> -->
-            <table>
-                <tr>
-                    <td>
-                        <button type='button' class='btn btn-sm btn-primary'  ng-click='recordPosition()'>Record position</button>
+            <table class='table'>
+                <tr class='table-active'>
+                    <td>&nbsp</td>
+                    <td ng-repeat='idx in [0,1,2,3]'>
+                            {{config[idx].name}}
                     </td>
+                </tr>
+                <tr class='table-info'>
                     <td>
-                        {{positions}}
+                        <button type='button' class='btn btn-sm btn-block btn-primary'  ng-click='recordPosition()'>Record position</button>
+                    </td>
+                    <td ng-repeat='idx in [0,1,2,3]'>
+                        {{positions[idx]}}
                     </td>
                 </tr>
 
                 <tr ng-repeat='p in recordedPositions'>
                     <td>
-                        <button type='button' class='btn btn-sm btn-primary'  ng-click='goto($index)'>Go to #{{$index+1}}</button>
+                        <button type='button' class='btn btn-sm btn-block btn-info'  ng-click='goto($index)'>Go to #{{$index+1}}</button>
                     </td>
-                    <td>
-                        {{p}}
-                    </td>
-                </tr>
+                    <td ng-repeat='idx in [0,1,2,3]'>
+                            {{p[idx]}}
+                        </td>
+                    </tr>
             </table>
-            <br>
             Interval: <input type='range' min=0 max=500 ng-model='interval' />{{interval}}
-            <button type='button' class='btn btn-sm btn-danger'  ng-click='debug()'>Debug</button >
-            {{(connected? "Connected" : "Not connected")}}
-
+            
             <br>
             <br>
             <table>
@@ -42,14 +45,34 @@
                         {{positions[idx]}} 
                     </td>
                     <td>
-                        <button type='button' class='btn btn-sm btn-primary'  ng-repeat='shift in [-100,-50,-20,-10,-5,-1,1,5,10,20,50,100]' ng-click='setPosition(idx, positions[idx]  + shift)'>{{shift}}</button >
-                    </td>
-                </tr>
+                        <button type='button' class='btn btn-sm btn-info' ng-click='setPosition(idx, 0)'>
+                                Min (0)
+                        </button >
+                        <button type='button' class='btn btn-sm btn-info' ng-click='setPosition(idx, 180)'>
+                                Max (180)
+                        </button >
+        
+                        <button type='button' class='btn btn-sm btn-primary'  ng-repeat='shift in [-50,-20,-1,1,20,50]' ng-click='setPosition(idx, positions[idx]  + shift)'>
+                            {{(shift>0? "+":"")}}{{shift}}
+                        </button >
+                        </td>
+                    </tr>
             </table>
+            <span id='statusbar'>
+                <button type='button' class='btn btn-sm btn-{{(connected?"success":"danger")}}'>
+                    {{(connected? "Connected" : "Not connected")}}
+                </button >
+                <button type='button' class='btn btn-sm btn-warning'  ng-click='debug()'>Debug</button >
+                <button type='button' class='btn btn-sm btn-warning'  ng-click='sendMessage("stopserver")'>Stop server</button >
+                <button type='button' class='btn btn-sm btn-warning'  ng-click='sendMessage("shutdown")'>Shutdown PI</button >
+                
+            </span>
         </div>
     </div> 
 
 </body>
+
+<link href="style.css" rel="stylesheet">
 
 <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
 <script src="/socket.io/socket.io.js"></script>
@@ -186,13 +209,16 @@
         };
         window.addEventListener("keydown", arrow_keys_handler, false);
 
-
-        function debug() {
+        $scope.debug = () => {
             var s = socket;
             debugger;
         }
 
-        $scope.debug = debug;
+        $scope.sendMessage = message => {
+            console.log("Sending message to server: ", message);
+            socket.emit(message);
+        }
+
         loadSettings();
         socket.on('config', config => {
             $scope.config = config;
@@ -204,7 +230,7 @@
 //            $scope.positions[data.idx] = data.position;
             $scope.$apply();
         });
-
+        socket.on('message', console.log);
         socket.on('distance',d => { $scope.distance = d; $scope.$apply(); });
         // socket.on('distance', function(distance) {
         //     $scope.distance = distance;
@@ -212,6 +238,16 @@
         // });
 
     })
+
+// example: changeRecordedPositions(x => x[0] *= 10)
+function changeRecordedPositions(callback) {
+    var original = JSON.parse(localStorage.recordedPositions);
+    console.table(original);
+    original.map(callback);
+    console.table(original);
+    debugger;
+    localStorage.recordedPositions = JSON.stringify(original);
+}
 
  
 </script>

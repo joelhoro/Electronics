@@ -11,7 +11,7 @@ var options = {
 pwm = new Pca9685Driver(options, function(err) {
     if (err) {
         console.error("Error initializing PCA9685");
-        process.exit(-1);
+//        process.exit(-1);
     }
     console.log("Initialization done"); 
 });

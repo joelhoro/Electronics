@@ -62,4 +62,14 @@ var io = StartServer(3000, function(socket) {
         }, 100 );2
         setPositions(idx,position,data.interval);
     });
+    socket.on('shutdown', function() {
+        console.log("Shutdown requested");
+        const exec = require('child_process').exec;
+        exec('shutdown now', (error, stdout, stderr)  => socket.emit('message',stdout));
+    });
+    socket.on('stopserver', function() {
+        console.log("Server stop requested");
+        throw new Error("Server stop requested from client");
+    });
+
 })
