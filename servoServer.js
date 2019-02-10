@@ -16,8 +16,8 @@ function initializePositions() {
 
 function setPositions(idx,value, interval) {
     var servo = motors[idx];
-    servo.goToAngle(value,interval);
-    //servo.setAngle(value);
+    //servo.goToAngle(value,interval);
+    servo.setAngle(value);
     if(io != undefined)
         io.emit('positions', {idx, position: value});
 }
