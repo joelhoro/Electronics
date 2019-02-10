@@ -5,8 +5,32 @@ var Servo = require('./servo2').Servo;
 // red to 5V / black to ground
 //const gpio_ports = [4,18,23,24];
 //const motors = gpio_ports.map(gpio_port => new Servo(gpio_port));
-var positions = [100,65,0,70];
-const motors = [0,1,2,3].map(idx => new Servo(idx,positions[idx]));
+
+var config = [
+    {
+        name: 'Upper arm',
+        channel: 0,
+        position: 100,
+    },
+    {
+        name: 'Body',
+        channel: 1,
+        position: 65,
+    },
+    {
+        name: 'Gripper',
+        channel: 2,
+        position: 0,
+    },
+    {
+        name: 'Lower arm',
+        channel: 3,
+        position: 70,
+    },
+]
+
+var positions = config.map(record => record.position);
+const motors = config.map(record => new Servo(record.channel,record.position));
 initializePositions();
 
 
@@ -27,6 +51,7 @@ var positionsMessage;
 
 var io = StartServer(3000, function(socket) { 
     initializePositions();
+    socket.emit('config', config);
     socket.on('positions', function(data) {
         console.log(">>> ", data);
         var idx = data.idx;

@@ -14,13 +14,7 @@ pwm = new Pca9685Driver(options, function(err) {
         process.exit(-1);
     }
     console.log("Initialization done"); 
-//    pwm.setPulseLength(2, 1500);
 });
-
-
-
-var pulseWidth_min = 500
-var pulseWidth_max = 2450
 
 function timer(ms) {
     return new Promise(res => setTimeout(res, ms));
@@ -53,25 +47,6 @@ class Servo {
     }
 
     demo(steps = 10) {
-        // var i = 0;
-        // var angle = 0;
-        // var step = 45;
-        // var interval = 100 * step/10;
-
-        // var move = () => {
-        //     i++;
-        //     if(angle > 180 || angle < 0)
-        //         step *= -1
-        //     angle += step;
-        //     this.setAngle(angle);
-        //     console.log(i);
-        //     if(i<steps) {
-        //         console.log(i,": repeating");
-        //         setTimeout(move, interval);
-        //     }
-        // };
-
-        // move();
         this.setAngle(0);
         setTimeout(() => this.setAngle(180),500);
         setTimeout(() => this.setAngle(0),1000);
@@ -79,4 +54,3 @@ class Servo {
 }
 
 exports.Servo = Servo;
-

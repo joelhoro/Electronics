@@ -3,31 +3,55 @@
 
     <div ng-app='electronics'>
         <div ng-controller='main'>
+
             <!-- Distance: {{distance}}cm
                 <br><input type='range' min=0 max=500 ng-model='distance'> -->
+            <table>
+                <tr>
+                    <td>
+                        <button type='button' class='btn btn-sm btn-primary'  ng-click='recordPosition()'>Record position</button>
+                    </td>
+                    <td>
+                        {{positions}}
+                    </td>
+                </tr>
 
-                <button ng-click='recordPosition()'>Record position</button>
-                Current - {{positions}}
-            Recorded positions:
-            <div ng-repeat='p in recordedPositions'>
-                <button ng-click='goto($index)'>Go to #{{$index+1}}</button>
-                {{$index+1}} - {{p}}
-            </div>
-            Interval: <input type='range' min=0 max=500 ng-model='interval' />{{interval}}
-            <button ng-click='debug()'>Debug</button>
-            {{(connected? "Connected" : "Not connected")}}
+                <tr ng-repeat='p in recordedPositions'>
+                    <td>
+                        <button type='button' class='btn btn-sm btn-primary'  ng-click='goto($index)'>Go to #{{$index+1}}</button>
+                    </td>
+                    <td>
+                        {{p}}
+                    </td>
+                </tr>
+            </table>
             <br>
+            Interval: <input type='range' min=0 max=500 ng-model='interval' />{{interval}}
+            <button type='button' class='btn btn-sm btn-danger'  ng-click='debug()'>Debug</button >
+            {{(connected? "Connected" : "Not connected")}}
 
-            <div ng-repeat='idx in [0,1,2,3]'>
-                    <br><button ng-repeat='shift in [-100,-50,-20,-10,-5,-1,1,5,10,20,50,100]' ng-click='setPosition(idx, positions[idx]  + shift)'>{{shift}}</button>
-                    <input type='range' min=0 max=180 ng-model='positions[idx]' ng-change='setPosition(idx,positions[idx])' />
-                    {{positions[idx]}} 
-                </div>
+            <br>
+            <br>
+            <table>
+                <tr ng-repeat='idx in [0,1,2,3]'>
+                    <td>
+                        {{config[idx].name}}
+                    </td>                        
+                    <td>
+                        <input type='range' min=0 max=180 ng-model='positions[idx]' ng-change='setPosition(idx,positions[idx])' />
+                        {{positions[idx]}} 
+                    </td>
+                    <td>
+                        <button type='button' class='btn btn-sm btn-primary'  ng-repeat='shift in [-100,-50,-20,-10,-5,-1,1,5,10,20,50,100]' ng-click='setPosition(idx, positions[idx]  + shift)'>{{shift}}</button >
+                    </td>
+                </tr>
+            </table>
         </div>
     </div> 
 
 </body>
 
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
 <script src="/socket.io/socket.io.js"></script>
 <script src='/node_modules/angular/angular.js'></script>
 
@@ -170,6 +194,9 @@
 
         $scope.debug = debug;
         loadSettings();
+        socket.on('config', config => {
+            $scope.config = config;
+        });
         socket.on('connect', setConnected(true));
         socket.on('disconnect', setConnected(false));
         socket.on('positions', data => {
