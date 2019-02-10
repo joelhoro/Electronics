@@ -20,7 +20,7 @@ app.use('/', express.static(path.resolve(__dirname)))
 
 var brightnessMessage;
 
-io.on('connection', function(socket) {
+io.on('connection', function(socket) { 
 
     socket.on('brightness', function(value) {
         clearTimeout(brightnessMessage);

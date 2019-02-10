@@ -10,22 +10,34 @@ try:
 	GPIO.setmode(GPIO.BOARD)
 	GPIO.setup(LED_PORT,GPIO.OUT)
 
-        pwm = GPIO.PWM(LED_PORT, 1000)
-        pwm.start(0)
-
-	for i in range(100):
-                dc = float(input())
-##		print(i);
+	print("Starting");
+	pwm = GPIO.PWM(LED_PORT, 50)
+	pwm.start(0)
+	dc_min = 3.0
+	dc_max = 15.0
+	increase = 1
+	n = 50
+	dc = dc_min
+	step = 0.1
+	while True:
+		if dc > dc_max:
+			increase = -1
+		if dc < dc_min:
+			increase = 1
+#                dc = float(input())
+		dc += step * increase
+		print(dc);
 		pwm.ChangeDutyCycle(dc)
 		
 #    		GPIO.output(LED_PORT,True)
-    		time.sleep(0.05)
-##		print("OFF");
-##    		GPIO.output(LED_PORT,False)
-##	    	time.sleep(0.1)
+		time.sleep(0.01)
+	##		print("OFF");
+	##    		GPIO.output(LED_PORT,False)
+	##	    	time.sleep(0.1)
 
-except:
-	print("Error!")
+except Exception as e:
+	print("Error!");
+	print(e);
 finally:
 	print("Cleaning up")
 	GPIO.output(LED_PORT,False)
