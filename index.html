@@ -58,7 +58,7 @@
                         </td>
                     </tr>
             </table>
-            <span id='statusbar'>
+            <span ng-if='showstatusbar' id='statusbar'>
                 <button type='button' class='btn btn-sm btn-{{(connected?"success":"danger")}}'>
                     {{(connected? "Connected" : "Not connected")}}
                 </button >
@@ -85,6 +85,7 @@
     angular.module('electronics',[])
     .controller('main', function($scope) {
         $scope.positions = [];
+        $scope.showstatusbar = false;
 
         function emitPosition(idx,position,interval) {
             if(idx==3)
@@ -200,7 +201,9 @@
                 case "KeyF":
                     $scope.setPosition(3,$scope.positions[3] + shift);
                     break;
-
+                case "KeyS":
+                    $scope.showstatusbar = !$scope.showstatusbar;
+                    break;
             }
 
             $scope.$apply();
