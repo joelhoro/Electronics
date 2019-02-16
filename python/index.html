@@ -1,0 +1,266 @@
+<title>PI bot</title>
+<body>
+
+    <div ng-app='electronics'>
+        <div ng-controller='main'>
+
+            <!-- Distance: {{distance}}cm
+                <br><input type='range' min=0 max=500 ng-model='distance'> -->
+            <table class='table'>
+                <tr class='table-active'>
+                    <td>&nbsp</td>
+                    <td ng-repeat='idx in [0,1,2,3]'>
+                            {{config[idx].name}}
+                    </td>
+                </tr>
+                <tr class='table-info'>
+                    <td>
+                        <button type='button' class='btn btn-sm btn-block btn-primary'  ng-click='recordPosition()'>Record position</button>
+                    </td>
+                    <td ng-repeat='idx in [0,1,2,3]'>
+                        {{positions[idx]}}
+                    </td>
+                </tr>
+
+                <tr ng-repeat='p in recordedPositions'>
+                    <td>
+                        <button type='button' class='btn btn-sm btn-block btn-info'  ng-click='goto($index)'>Go to #{{$index+1}}</button>
+                    </td>
+                    <td ng-repeat='idx in [0,1,2,3]'>
+                            {{p[idx]}}
+                        </td>
+                    </tr>
+            </table>
+            Interval: <input type='range' min=0 max=500 ng-model='interval' />{{interval}}
+            
+            <br>
+            <br>
+            <table>
+                <tr ng-repeat='idx in [0,1,2,3]'>
+                    <td>
+                        {{config[idx].name}}
+                    </td>                        
+                    <td>
+                        <input type='range' min=0 max=180 ng-model='positions[idx]' ng-change='setPosition(idx,positions[idx])' />
+                        {{positions[idx]}} 
+                    </td>
+                    <td>
+                        <button type='button' class='btn btn-sm btn-info' ng-click='setPosition(idx, 0)'>
+                                Min (0)
+                        </button >
+                        <button type='button' class='btn btn-sm btn-info' ng-click='setPosition(idx, 180)'>
+                                Max (180)
+                        </button >
+        
+                        <button type='button' class='btn btn-sm btn-primary'  ng-repeat='shift in [-50,-20,-1,1,20,50]' ng-click='setPosition(idx, positions[idx]  + shift)'>
+                            {{(shift>0? "+":"")}}{{shift}}
+                        </button >
+                        </td>
+                    </tr>
+            </table>
+            <span ng-if='showstatusbar' id='statusbar'>
+                <button type='button' class='btn btn-sm btn-{{(connected?"success":"danger")}}'>
+                    {{(connected? "Connected" : "Not connected")}}
+                </button >
+                <button type='button' class='btn btn-sm btn-warning'  ng-click='debug()'>Debug</button >
+                <button type='button' class='btn btn-sm btn-warning'  ng-click='sendMessage("stopserver")'>Stop server</button >
+                <button type='button' class='btn btn-sm btn-warning'  ng-click='sendMessage("shutdown")'>Shutdown PI</button >
+                
+            </span>
+        </div>
+    </div> 
+
+</body>
+
+<link href="style.css" rel="stylesheet">
+
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+<script src='/node_modules/angular/angular.js'></script>
+
+<script>
+// @ts-check
+"use strict";
+
+    angular.module('electronics',[])
+    .controller('main', function($scope) {
+        $scope.positions = [];
+        $scope.showstatusbar = false;
+
+        function emitPosition(idx,position,interval) {
+            if(idx==3)
+                position = position*2/3;
+              if(idx==2)
+                position = position/3;
+            if(idx==1)
+                position = 180 - position;
+            socket.send(JSON.stringify({name: 'position', data: {idx, position, interval}}));
+        }
+
+        function loadSettings() {
+            var recordedPositions = localStorage.getItem("recordedPositions");
+            if(recordedPositions == undefined)
+                $scope.recordedPositions = [
+                    [100,115,0,105],
+                    [90,90,90,90],
+                    [75,180,175,105]
+                ];
+            else
+                $scope.recordedPositions = JSON.parse(recordedPositions);
+        }
+
+        function saveSettings() {
+            localStorage.setItem("recordedPositions",JSON.stringify($scope.recordedPositions));
+        }
+
+        $scope.recordPosition = function() {
+            $scope.recordedPositions.push($scope.positions.slice())
+            saveSettings();
+        }
+        $scope.goto = function(posIdx) {
+            if($scope.recordedPositions[posIdx] == undefined)
+                return;
+            var idx = 0;
+            for(var idx=0; idx<4;idx++) 
+                $scope.setPosition(idx,$scope.recordedPositions[posIdx][idx], $scope.interval);
+        }
+
+        $scope.setPosition = function(idx, position, interval=1) {
+            console.log("Setting ", idx, " to ", position);
+            $scope.positions[idx] = position;
+            emitPosition(idx,position,interval);                
+
+//            $scope.$apply();
+        }
+
+        $scope.interval = 100;
+        
+        var socket = new WebSocket("ws://" + location.host + "/ws");
+        function setConnected(value) {
+            return () => {
+                $scope.connected = value;
+                $scope.goto(0);
+                $scope.$apply();
+            }
+        }
+
+        var arrow_keys_handler = function(e) {
+            switch(e.keyCode){
+                case 37: case 39: case 38:  case 40: // Arrow keys
+                case 32: case 65: case 68: case 83: case 87: e.preventDefault(); break; // Space
+                default: break; // do not block other keys
+            }
+
+            var shift = e.shiftKey ? 20 : 5;
+            if(e.ctrlKey)
+                shift = 1;
+            console.log(e.code, e.keyCode);    
+            switch(e.code) {
+                case "Digit1":
+                    $scope.goto(0)
+                    break;
+                case "Digit2":
+                    $scope.goto(1)
+                    break;
+                case "Digit3":
+                    $scope.goto(2)
+                    break;
+                case "Digit4":
+                    $scope.goto(3)
+                    break;
+                case "Digit5":
+                    $scope.goto(4)
+                    break;
+                case "Digit6":
+                    $scope.goto(5)
+                    break;
+                case "Digit7":
+                    $scope.goto(6)
+                    break;
+                case "Digit8":
+                    $scope.goto(7)
+                    break;
+                case "ArrowDown":
+                    $scope.setPosition(0,$scope.positions[0] - shift);
+                    break;
+                case "ArrowUp":
+                    $scope.setPosition(0,$scope.positions[0] + shift);
+                    break;
+                case "ArrowLeft":
+                    $scope.setPosition(1,$scope.positions[1] - shift);
+                    break;
+                case "ArrowRight":
+                    $scope.setPosition(1,$scope.positions[1] + shift);
+                    break;
+                case "Space":
+                    $scope.setPosition(2,180-$scope.positions[2],100);
+                    break;
+                case "KeyV":
+                    $scope.setPosition(3,$scope.positions[3] - shift);
+                    break;
+                case "KeyF":
+                    $scope.setPosition(3,$scope.positions[3] + shift);
+                    break;
+                case "KeyS":
+                    $scope.showstatusbar = !$scope.showstatusbar;
+                    break;
+            }
+
+            $scope.$apply();
+            
+
+        };
+        window.addEventListener("keydown", arrow_keys_handler, false);
+
+        $scope.debug = () => {
+            var s = socket;
+            debugger;
+        }
+
+        $scope.sendMessage = message => {
+            console.log("Sending message to server: ", message);
+            socket.send(JSON.stringify({name: message}));
+        }
+
+        loadSettings();
+
+        var events = {}
+        socket.onmessage = function(event) {
+            var message = JSON.parse(event.data)
+            if(message.name in events)
+                events[message.name](message.data)
+        }
+        socket.on = function(name, cb) {
+            events[name] = cb;
+        }
+
+        socket.on('config', config => {
+            $scope.config = config;
+        });
+        socket.on('connect', setConnected(true));
+        socket.on('disconnect', setConnected(false));
+        socket.on('positions', data => {
+            console.log("Received ", data)
+//            $scope.positions[data.idx] = data.position;
+            $scope.$apply();
+        });
+        socket.on('message', console.log);
+        socket.on('distance',d => { $scope.distance = d; $scope.$apply(); });
+        // socket.on('distance', function(distance) {
+        //     $scope.distance = distance;
+        //     $scope.$apply();
+        // });
+
+    })
+
+// example: changeRecordedPositions(x => x[0] *= 10)
+function changeRecordedPositions(callback) {
+    var original = JSON.parse(localStorage.recordedPositions);
+    console.table(original);
+    original.map(callback);
+    console.table(original);
+    debugger;
+    localStorage.recordedPositions = JSON.stringify(original);
+}
+
+ 
+</script>

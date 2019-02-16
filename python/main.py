@@ -1,5 +1,6 @@
 from screen import Screen
 from joystick import JoyStick
+from servo import Servo
 import math, time
 
 def are_equal(a,b):
@@ -10,8 +11,16 @@ def are_equal(a,b):
             return False
     return True        
 
-joyStick = JoyStick(JoyStick.Address_Ox48,[1,0],4)
-joyStick2 = JoyStick(JoyStick.Address_Ox48,[3,2],17)
+class Robot():
+    speeds = [1,5,10,50]
+    def __init__(self):
+        self.speed = 5
+
+    def toggleSpeed(self):
+        idx = ( Robot.speeds.index(self.speed) + 1 ) % len(Robot.speeds)
+        print("Setting speed to %s" % self.speed)
+        self.speed = Robot.speeds[idx]
+
 
 def drawCircle(draw,center,radius,coordinates):
     #draw.ellipse((0,50),10,100),outline=255,fill=255)
@@ -27,25 +36,75 @@ def drawCircle(draw,center,radius,coordinates):
 
 screen = Screen()
 
+servos = [Servo(channel) for channel in [0,1,2,3]]
+joyStick = JoyStick(1,JoyStick.Address_Ox48,[1,0],4)
+joyStick2 = JoyStick(1,JoyStick.Address_Ox48,[3,2],17)
+
+
+
+robot = Robot()
+
+for servo in servos:
+    servo.set_angle(90)
+
+def applyPosition(servo, joyStick, axis, multiplier=1):
+    position = joyStick.last_position[axis]
+    threshhold = 0.11
+    if position > threshhold or position < -threshhold:
+        servo.set_angle(servo.angle + robot.speed*multiplier*position)
+        return True
+    return False
+
 previous_position = []
 i = 0
-while True:
+
+showDisplay = False
+
+def toggleDisplay():
+    global showDisplay
+    showDisplay = not showDisplay
+    print("Toggling display to %s" % showDisplay)
+    if not showDisplay:
+        screen.clear()
+
+
+position = joyStick.position()
+position2 = joyStick2.position()
+
+start = time.time()
+showDisplay=True
+print("Starting")
+
+while i<50:#True:
     position = joyStick.position()
-    #position2 = joyStick2.position()
-    if False:# not are_equal(position, previous_position):
+    position2 = joyStick2.position()
+    if True:# not are_equal(position, previous_position):
+        moved = applyPosition(servos[0],joyStick,1)
+        moved = moved or applyPosition(servos[1],joyStick,0, -1)
+        moved = moved or applyPosition(servos[2],joyStick2,0,10)
+        moved = moved or applyPosition(servos[3],joyStick2,1)
+
+        if joyStick2.last_position[-1]:
+            toggleDisplay()
+        elif joyStick.last_position[-1]:
+            robot.toggleSpeed()
         #print(position)
-        draw = screen.drawer()
-        drawCircle(draw,(20,20),20,position)
-        drawCircle(draw,(80,20),20,position2)
-        #drawCircle(draw,(80,20),10,position)
-        #drawCircle(draw,(20,50),10,position)
-        #drawCircle(draw,(50,50),10,position)
-        draw.text((80,50), str(i), fill=255)
-        screen.display()
+        if not(i % 5) and showDisplay:
+            draw = screen.drawer()
+            drawCircle(draw,(20,20),20,position)
+            drawCircle(draw,(80,20),20,position2)
+            draw.text((10,50), '# %s' % i, fill=255)
+            draw.text((70,50), 'Speed=%s' % robot.speed, fill=255)
+            screen.display()
+        
     i += 1
-    print(".", end='', flush=True),
+#    print(".", end='', flush=True),
+    #print('*' * int(position[0]/1000))
 
     #previous_position = position
 
 
     #time.sleep(0.5)
+
+end = time.time()
+print(end - start)

@@ -18,24 +18,30 @@ def convert_coordinates(x):
 
 class JoyStick():
     Address_Ox48 = 0x48
+    Address_Ox49 = 0x48
+    Address_Ox4A = 0x4A
+    Address_Ox4B = 0x4B
 
     GAIN = 1
-    def __init__(self, address, channels, button_gpio_pin):
+    def __init__(self, bus, address, channels, button_gpio_pin):
+        self.bus = bus
         self.address = address
         self.channels = channels
         self.button_gpio_pin = button_gpio_pin
-        self.adc = Adafruit_ADS1x15.ADS1115(address=self.address)
+        self.adc = Adafruit_ADS1x15.ADS1115(address=self.address,busnum=bus)
         # not great to alter this setting here...
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self.button_gpio_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        
+        self.last_position = [0,0,0]
+
     def position(self):
         reads = [
             self.adc.read_adc(i, gain=JoyStick.GAIN) for i in self.channels
         ]
-
         reads = [convert_coordinates(r) for r in reads]
-        return reads + [ not GPIO.input(self.button_gpio_pin) ]
+        reads = reads + [ not GPIO.input(self.button_gpio_pin) ]
+        self.last_position = reads
+        return reads
     
 
 

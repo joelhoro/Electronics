@@ -13,6 +13,10 @@ class Screen():
         self.disp.clear()
         self.disp.display()
 
+    def clear(self):
+        self.disp.clear()
+        self.disp.display()
+
     def drawer(self):
         self.image = Image.new('1', (self.disp.width, self.disp.height))
         draw = ImageDraw.Draw(self.image)
