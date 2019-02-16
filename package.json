@@ -6,7 +6,12 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "sudo node led_blink.js",
+    "status": "node status.js",
     "robot": "sudo node servoServer.js"
+  },
+  "config": {
+    "status_port": 9999,
+    "servo_port": 3000
   },
   "author": "",
   "license": "ISC",
@@ -14,8 +19,13 @@
     "angular": "^1.7.6",
     "express": "^4.16.4",
     "i2c-bus": "^4.0.7",
+    "node-ads1x15": "^1.0.3",
+    "oled-js-pi": "^1.0.5",
     "pca9685": "^4.0.3",
     "pigpio": "^1.2.1",
+    "raspi": "^6.0.0",
+    "raspi-i2c": "^6.2.1",
+    "raspi-kit-ads1x15": "^1.0.0",
     "socket.io": "^2.2.0"
   }
 }

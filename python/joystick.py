@@ -28,7 +28,8 @@ class JoyStick():
         self.address = address
         self.channels = channels
         self.button_gpio_pin = button_gpio_pin
-        self.adc = Adafruit_ADS1x15.ADS1115(address=self.address,busnum=bus)
+        self.adc = Adafruit_ADS1x15.ADS1115(address=self.address,busnum=self.bus)
+        print('Initializing ADS1115 on bus %s @ %s - channels %s and %s' % (self.bus, self.address, channels[0], channels[1]))
         # not great to alter this setting here...
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self.button_gpio_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)

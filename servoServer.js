@@ -49,7 +49,9 @@ function setPositions(idx,value, interval) {
 
 var positionsMessage;
 
-var io = StartServer(3000, function(socket) { 
+var port = process.env.npm_package_config_servo_port || 3000
+
+var io = StartServer(port, function(socket) { 
     initializePositions();
     socket.emit('config', config);
     socket.on('positions', function(data) {

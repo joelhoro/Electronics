@@ -58,44 +58,29 @@ def applyPosition(servo, joyStick, axis, multiplier=1):
 previous_position = []
 i = 0
 
-showDisplay = False
-
-def toggleDisplay():
-    global showDisplay
-    showDisplay = not showDisplay
-    print("Toggling display to %s" % showDisplay)
-    if not showDisplay:
-        screen.clear()
-
-
-position = joyStick.position()
-position2 = joyStick2.position()
-
 start = time.time()
-showDisplay=True
 print("Starting")
 
-while i<50:#True:
+while True:
     position = joyStick.position()
     position2 = joyStick2.position()
-    if True:# not are_equal(position, previous_position):
-        moved = applyPosition(servos[0],joyStick,1)
-        moved = moved or applyPosition(servos[1],joyStick,0, -1)
-        moved = moved or applyPosition(servos[2],joyStick2,0,10)
-        moved = moved or applyPosition(servos[3],joyStick2,1)
+    moved = applyPosition(servos[0],joyStick,1)
+    moved = moved or applyPosition(servos[1],joyStick,0, -1)
+    moved = moved or applyPosition(servos[2],joyStick2,0,10)
+    moved = moved or applyPosition(servos[3],joyStick2,1)
 
-        if joyStick2.last_position[-1]:
-            toggleDisplay()
-        elif joyStick.last_position[-1]:
-            robot.toggleSpeed()
-        #print(position)
-        if not(i % 5) and showDisplay:
-            draw = screen.drawer()
-            drawCircle(draw,(20,20),20,position)
-            drawCircle(draw,(80,20),20,position2)
-            draw.text((10,50), '# %s' % i, fill=255)
-            draw.text((70,50), 'Speed=%s' % robot.speed, fill=255)
-            screen.display()
+    if joyStick2.last_position[-1]:
+        screen.toggle()
+    elif joyStick.last_position[-1]:
+        robot.toggleSpeed()
+    #print(position)
+    if not(i % 5) and screen.active:
+        draw = screen.drawer()
+        drawCircle(draw,(20,20),20,position)
+        drawCircle(draw,(80,20),20,position2)
+        draw.text((10,50), '# %s' % i, fill=255)
+        draw.text((70,50), 'Speed=%s' % robot.speed, fill=255)
+        screen.display()
         
     i += 1
 #    print(".", end='', flush=True),
