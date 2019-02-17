@@ -37,7 +37,7 @@ def drawCircle(draw,center,radius,coordinates):
 screen = Screen()
 
 servos = [Servo(channel) for channel in [0,1,2,3]]
-joyStick = JoyStick(1,JoyStick.Address_Ox48,[1,0],4)
+joyStick1 = JoyStick(1,JoyStick.Address_Ox48,[1,0],4)
 joyStick2 = JoyStick(1,JoyStick.Address_Ox48,[3,2],17)
 
 robot = Robot()
@@ -47,6 +47,7 @@ for servo in servos:
 
 def applyPosition(servo, joyStick, axis, multiplier=1):
     position = joyStick.last_position[axis]
+    print(position)
     threshhold = 0.11
     if position > threshhold or position < -threshhold:
         servo.go_to_angle(servo.angle + robot.speed*multiplier*position)
@@ -61,16 +62,17 @@ print("Starting")
 
 try:
     while True:
-        position = joyStick.position()
+        position = joyStick1.position()
         position2 = joyStick2.position()
-        moved = applyPosition(servos[0],joyStick,1)
-        moved = moved or applyPosition(servos[1],joyStick,0, -1)
+        moved = False
+        moved = moved or applyPosition(servos[0],joyStick1,1,-1)
+        moved = moved or applyPosition(servos[1],joyStick1,0, 1)
         moved = moved or applyPosition(servos[2],joyStick2,0,10)
         moved = moved or applyPosition(servos[3],joyStick2,1)
 
         if joyStick2.last_position[-1]:
             screen.toggle()
-        elif joyStick.last_position[-1]:
+        elif joyStick1.last_position[-1]:
             robot.toggleSpeed()
         #print(position)
         if not(i % 5) and screen.active:
