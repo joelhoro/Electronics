@@ -5,11 +5,15 @@ class Screen():
     def __init__(self):
         RST = 24
         print("Initializing SSD1306 OLED screen... ", end='')
-        self.disp = Adafruit_SSD1306.SSD1306_128_64(rst=RST)
-        print("done")
-        font = ImageFont.load_default()
-        self.initialize()
-        self.active = True
+        self.active = False
+        try:
+            self.disp = Adafruit_SSD1306.SSD1306_128_64(rst=RST)
+            self.initialize()
+            print("done")
+            self.active = True
+        except:
+            pass
+            #raise Exception("Could not connect to screen")
 
     def initialize(self):
         self.disp.begin()

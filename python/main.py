@@ -40,8 +40,6 @@ servos = [Servo(channel) for channel in [0,1,2,3]]
 joyStick = JoyStick(1,JoyStick.Address_Ox48,[1,0],4)
 joyStick2 = JoyStick(1,JoyStick.Address_Ox48,[3,2],17)
 
-
-
 robot = Robot()
 
 for servo in servos:
@@ -51,7 +49,7 @@ def applyPosition(servo, joyStick, axis, multiplier=1):
     position = joyStick.last_position[axis]
     threshhold = 0.11
     if position > threshhold or position < -threshhold:
-        servo.set_angle(servo.angle + robot.speed*multiplier*position)
+        servo.go_to_angle(servo.angle + robot.speed*multiplier*position)
         return True
     return False
 
@@ -61,35 +59,38 @@ i = 0
 start = time.time()
 print("Starting")
 
-while True:
-    position = joyStick.position()
-    position2 = joyStick2.position()
-    moved = applyPosition(servos[0],joyStick,1)
-    moved = moved or applyPosition(servos[1],joyStick,0, -1)
-    moved = moved or applyPosition(servos[2],joyStick2,0,10)
-    moved = moved or applyPosition(servos[3],joyStick2,1)
+try:
+    while True:
+        position = joyStick.position()
+        position2 = joyStick2.position()
+        moved = applyPosition(servos[0],joyStick,1)
+        moved = moved or applyPosition(servos[1],joyStick,0, -1)
+        moved = moved or applyPosition(servos[2],joyStick2,0,10)
+        moved = moved or applyPosition(servos[3],joyStick2,1)
 
-    if joyStick2.last_position[-1]:
-        screen.toggle()
-    elif joyStick.last_position[-1]:
-        robot.toggleSpeed()
-    #print(position)
-    if not(i % 5) and screen.active:
-        draw = screen.drawer()
-        drawCircle(draw,(20,20),20,position)
-        drawCircle(draw,(80,20),20,position2)
-        draw.text((10,50), '# %s' % i, fill=255)
-        draw.text((70,50), 'Speed=%s' % robot.speed, fill=255)
-        screen.display()
-        
-    i += 1
-#    print(".", end='', flush=True),
-    #print('*' * int(position[0]/1000))
+        if joyStick2.last_position[-1]:
+            screen.toggle()
+        elif joyStick.last_position[-1]:
+            robot.toggleSpeed()
+        #print(position)
+        if not(i % 5) and screen.active:
+            draw = screen.drawer()
+            drawCircle(draw,(20,20),20,position)
+            drawCircle(draw,(80,20),20,position2)
+            draw.text((10,50), '# %s' % i, fill=255)
+            draw.text((70,50), 'Speed=%s' % robot.speed, fill=255)
+            screen.display()
+            
+        i += 1
+    #    print(".", end='', flush=True),
+        #print('*' * int(position[0]/1000))
 
-    #previous_position = position
+        #previous_position = position
 
 
-    #time.sleep(0.5)
-
-end = time.time()
-print(end - start)
+        #time.sleep(0.5)
+except KeyboardInterrupt:
+    print("Exiting")
+finally:
+    end = time.time()
+    print(end - start)

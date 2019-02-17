@@ -23,7 +23,7 @@ class Servo():
         
         # Set frequency to 60hz, good for servos.
         pwm.set_pwm_freq(60)
-        this.pwm = pwm
+        Servo.pwm = pwm
 
     def __init__(self,channel):
         Servo.initialize_pwm()
@@ -37,12 +37,14 @@ class Servo():
     def set_angle(self,angle):
         angle = max(0,min(angle,180))
         pulse = Servo.servo_min + (Servo.servo_max-Servo.servo_min)/180.0 * angle
-        pwm.set_pwm(self.channel, 0, int(pulse))
+        Servo.pwm.set_pwm(self.channel, 0, int(pulse))
         self.angle = angle
     
     def _smoothing(self,x):
         return pow(x,self.alpha) / (pow(x,self.alpha) + pow(1-x,self.alpha))
 
+    def __del__(self):
+        Servo.pwm.set_pwm(self.channel,0,0)
     # go to a given angle in a smooth way
     def go_to_angle(self,angle):
         distance = angle-self.angle
