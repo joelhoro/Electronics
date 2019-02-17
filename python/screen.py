@@ -15,6 +15,9 @@ class Screen():
             pass
             #raise Exception("Could not connect to screen")
 
+    def __del__(self):
+        self.clear()
+        
     def initialize(self):
         self.disp.begin()
         self.disp.clear()
